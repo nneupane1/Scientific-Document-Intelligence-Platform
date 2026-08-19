@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scidoc.local/schema/sdr/0.1.0",
+  "title": "Scientific Document Representation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "document", "pages", "processing", "pipeline_version", "config_hash", "model_versions"],
+  "properties": {
+    "schema_version": { "const": "0.1.0" },
+    "document": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "filename", "sha256", "page_count", "created_at"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "filename": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "page_count": { "type": "integer", "minimum": 1 },
+        "title": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "pages": { "type": "array", "items": { "$ref": "#/$defs/page" } },
+    "processing": { "$ref": "#/$defs/processing" },
+    "pipeline_version": { "type": "string" },
+    "config_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "model_versions": { "type": "object", "additionalProperties": { "type": "string" } }
+  },
+  "$defs": {
+    "content": {
+      "type": "object", "additionalProperties": false,
+      "required": ["words", "spans", "candidates"],
+      "properties": {
+        "text": { "type": ["string", "null"] }, "latex": { "type": ["string", "null"] },
+        "raw_latex": { "type": ["string", "null"] }, "normalized_latex": { "type": ["string", "null"] },
+        "mathml": { "type": ["string", "null"] }, "unicode": { "type": ["string", "null"] },
+        "label": { "type": ["string", "null"] }, "columns": { "type": ["array", "null"], "items": { "type": "string" } },
+        "rows": { "type": ["array", "null"], "items": { "type": "array" } },
+        "alt_text": { "type": ["string", "null"] },
+        "words": { "type": "array", "items": { "type": "object" } },
+        "spans": { "type": "array", "items": { "type": "object" } },
+        "candidates": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "provenanceEvent": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method", "engine", "pipeline_version", "created_at", "details"],
+      "properties": {
+        "method": { "type": "string" }, "engine": { "type": "string" },
+        "engine_version": { "type": ["string", "null"] }, "model": { "type": ["string", "null"] },
+        "model_version": { "type": ["string", "null"] }, "pipeline_version": { "type": "string" },
+        "source_page": { "type": ["integer", "null"], "minimum": 1 }, "created_at": { "type": "string", "format": "date-time" },
+        "details": { "type": "object" }
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method", "engine", "pipeline_version", "cache_hit", "cache_key", "history"],
+      "properties": {
+        "method": { "type": "string" }, "engine": { "type": "string" },
+        "engine_version": { "type": ["string", "null"] }, "model": { "type": ["string", "null"] },
+        "model_version": { "type": ["string", "null"] }, "pipeline_version": { "type": "string" },
+        "source_page": { "type": ["integer", "null"], "minimum": 1 },
+        "cache_hit": { "type": "boolean" },
+        "cache_key": { "type": ["string", "null"] },
+        "history": { "type": "array", "items": { "$ref": "#/$defs/provenanceEvent" } }
+      }
+    },
+    "element": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "bbox", "reading_order", "content", "confidence", "confidence_source", "provenance", "review_status", "warnings"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "enum": ["paragraph", "title", "heading", "equation", "figure", "caption", "table", "page_number", "footnote", "unknown", "chemical_equation", "molecule", "circuit", "chart", "diagram", "braille", "code", "reference"] },
+        "bbox": { "type": "array", "prefixItems": [{"type":"number"},{"type":"number"},{"type":"number"},{"type":"number"}], "minItems": 4, "maxItems": 4 },
+        "reading_order": { "type": "integer", "minimum": 0 }, "content": { "$ref": "#/$defs/content" },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }, "confidence_source": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "review_status": { "enum": ["accepted", "uncertain", "rejected", "needs_review", "engine_unavailable"] },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "page": {
+      "type": "object", "additionalProperties": false,
+      "required": ["number", "width", "height", "classification", "elements", "metrics"],
+      "properties": {
+        "number": { "type": "integer", "minimum": 1 }, "width": { "type": "number", "exclusiveMinimum": 0 }, "height": { "type": "number", "exclusiveMinimum": 0 },
+        "classification": { "enum": ["native", "raster", "hybrid", "vector_heavy", "unknown"] },
+        "elements": { "type": "array", "items": { "$ref": "#/$defs/element" } },
+        "metrics": { "type": "object" }
+      }
+    },
+    "processing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pages_processed", "regions_processed", "native_elements", "ocr_elements", "formula_elements", "escalations", "high_dpi_retries", "cache_hits", "cache_misses", "failed_regions", "human_review_elements", "elapsed_seconds"],
+      "properties": {
+        "pages_processed": {"type":"integer"}, "regions_processed": {"type":"integer"}, "native_elements": {"type":"integer"},
+        "ocr_elements": {"type":"integer"}, "formula_elements": {"type":"integer"}, "escalations": {"type":"integer"},
+        "high_dpi_retries": {"type":"integer"}, "cache_hits": {"type":"integer"}, "cache_misses": {"type":"integer"},
+        "failed_regions": {"type":"integer"}, "human_review_elements": {"type":"integer"}, "elapsed_seconds": {"type":"number"}
+      }
+    }
+  }
+}

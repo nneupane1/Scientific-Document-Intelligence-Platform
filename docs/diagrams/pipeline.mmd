@@ -1,0 +1,15 @@
+flowchart TD
+  PDF[Scientific PDF] --> Inspect[Deterministic inspection]
+  Inspect --> Native{Reliable native content?}
+  Native -->|yes| Extract[Native extraction]
+  Native -->|no| Render[Adaptive render]
+  Render --> Layout[Layout + region classification]
+  Layout --> Route[Cost-aware router]
+  Route --> OCR[Local OCR]
+  Route --> Formula[Local formula model]
+  Extract --> Validate[Validate fidelity]
+  OCR --> Validate
+  Formula --> Validate
+  Validate --> SDR[Canonical SDR JSON]
+  SDR --> Viewer[Original PDF + semantic overlay]
+  SDR --> Export[JSON / HTML / MD / TeX / searchable PDF]

@@ -1,0 +1,4 @@
+environment: local
+queue_mode: background
+logging:
+  format: console
