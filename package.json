@@ -2,6 +2,7 @@
   "name": "scientific-document-intelligence",
   "private": true,
   "version": "0.1.0",
+  "license": "MIT",
   "workspaces": ["apps/web"],
   "scripts": {
     "dev": "npm run dev --workspace=@scidoc/web",

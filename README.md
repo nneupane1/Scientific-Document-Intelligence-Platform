@@ -1,5 +1,7 @@
 # NeetiTech Scientific Document Intelligence Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > A local-first scientific document compiler that transforms native, scanned, and hybrid PDFs into evidence-linked structured data, screen-reader-oriented HTML, selectable PDFs, searchable content, and natural local narration.
 
 This repository contains a complete working foundation for scientific PDF ingestion, inspection, adaptive recognition, structured reconstruction, visual verification, accessibility export, search, and local neural narration. It is designed for documents in mathematics, physics, engineering, computer science, biology, medicine, chemistry, finance, quantitative research, and other disciplines where ordinary “extract all text” tools lose page geometry, equations, tables, diagrams, or provenance.
@@ -2563,6 +2565,8 @@ Priority work should remain evidence-driven:
 
 ## License
 
-The project source is provided under the license in [LICENSE](LICENSE). Third-party packages and model assets retain their own licenses. Review those licenses before redistribution or commercial deployment, particularly when adding optional specialist OCR, formula, chemistry, vision, or speech models.
+The project source is licensed under the [MIT License](LICENSE). You may use, copy, modify, merge, publish, distribute, sublicense, and sell copies subject to the copyright and permission notice in that file.
+
+Third-party packages and model assets retain their own licenses. Review those licenses before redistribution or commercial deployment, particularly when adding optional specialist OCR, formula, chemistry, vision, or speech models.
 
 The default Kokoro model and its runtime have their own upstream licensing notices. A commercial operator is responsible for maintaining a complete software bill of materials, attribution records, model cards, privacy disclosures, accessibility testing, and security review.
