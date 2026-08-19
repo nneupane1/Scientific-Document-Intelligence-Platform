@@ -11,6 +11,9 @@ __pycache__/
 .coverage
 htmlcov/
 .next/
+apps/web/next-env.d.ts
+apps/web/*GENTS.md
+apps/web/CLAUDE.md
 *.tsbuildinfo
 playwright-report/
 test-results/
