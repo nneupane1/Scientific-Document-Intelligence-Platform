@@ -1,0 +1,31 @@
+processing:
+  default_dpi: 300
+  escalation_dpi: 450
+  max_dpi: 600
+  native_text_coverage_threshold: 0.01
+  native_min_characters: 8
+workers:
+  cpu_concurrency: 4
+  ocr_concurrency: 2
+  gpu_concurrency: 1
+  export_concurrency: 1
+routing:
+  native_acceptance: 0.99
+  ocr_acceptance: 0.97
+  formula_acceptance: 0.97
+  enable_high_dpi_retry: true
+  enable_large_formula_engine: false
+  enable_vlm: true
+features:
+  tables: true
+  chemistry: true
+  diagrams: true
+  charts: true
+  vlm_validation: true
+storage:
+  backend: local
+  root: ./data
+database:
+  url: ${SCIDOC_DATABASE_URL}
+redis:
+  url: ${SCIDOC_REDIS_URL}

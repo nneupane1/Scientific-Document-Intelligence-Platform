@@ -1,0 +1,11 @@
+thresholds:
+  native: 0.99
+  ocr: 0.97
+  formula: 0.97
+escalation:
+  high_dpi_retry: true
+  large_formula: false
+  vlm: true
+order:
+  text: [native_pdf, rapidocr, tesseract, paddleocr]
+  equation: [native_pdf, formula_small, formula_large]

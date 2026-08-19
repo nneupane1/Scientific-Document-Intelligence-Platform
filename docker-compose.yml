@@ -1,0 +1,144 @@
+name: neetitech-document-intelligence
+
+x-api-environment: &api-environment
+  SCIDOC_ENVIRONMENT: container
+  SCIDOC_DATABASE_URL: postgresql+psycopg://scidoc:scidoc@postgres:5432/scidoc
+  SCIDOC_REDIS_URL: redis://redis:6379/0
+  SCIDOC_STORAGE_ROOT: /app/data
+  SCIDOC_QUEUE_MODE: dramatiq
+  SCIDOC_CORS_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
+  SCIDOC_MAX_UPLOAD_MB: ${SCIDOC_MAX_UPLOAD_MB:-250}
+  SCIDOC_LOG_LEVEL: ${SCIDOC_LOG_LEVEL:-INFO}
+  SCIDOC_ENABLE_TABLES: ${SCIDOC_ENABLE_TABLES:-true}
+  SCIDOC_ENABLE_CHEMISTRY: ${SCIDOC_ENABLE_CHEMISTRY:-true}
+  SCIDOC_ENABLE_DIAGRAMS: ${SCIDOC_ENABLE_DIAGRAMS:-true}
+  SCIDOC_ENABLE_CHARTS: ${SCIDOC_ENABLE_CHARTS:-true}
+  SCIDOC_ENABLE_VLM: ${SCIDOC_ENABLE_VLM:-true}
+  SCIDOC_NARRATION_PROVIDER: ${SCIDOC_NARRATION_PROVIDER:-kokoro}
+  SCIDOC_NARRATION_LOCAL_MODEL: /opt/scidoc/models/narration/kokoro-v1.0.onnx
+  SCIDOC_NARRATION_LOCAL_VOICES: /opt/scidoc/models/narration/voices-v1.0.bin
+  SCIDOC_NARRATION_LOCAL_DEFAULT_VOICE: ${SCIDOC_NARRATION_LOCAL_DEFAULT_VOICE:-af_heart}
+  XDG_CACHE_HOME: /app/data/models/cache
+
+x-api-image: &api-image
+  image: neetitech/scidoc-api:local
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: scidoc
+      POSTGRES_USER: scidoc
+      POSTGRES_PASSWORD: scidoc
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scidoc -d scidoc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  api:
+    <<: *api-image
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        SCIDOC_EXTRAS: ${SCIDOC_EXTRAS:-ocr,voice}
+    restart: unless-stopped
+    environment: *api-environment
+    ports:
+      - "${SCIDOC_API_BIND:-127.0.0.1}:${SCIDOC_API_PORT:-8000}:8000"
+    volumes:
+      - scidoc_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  worker:
+    <<: *api-image
+    restart: unless-stopped
+    command:
+      [
+        "dramatiq",
+        "scidoc_jobs.tasks",
+        "--processes",
+        "1",
+        "--threads",
+        "4",
+        "--queues",
+        "cpu",
+        "export",
+      ]
+    environment: *api-environment
+    volumes:
+      - scidoc_data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    image: neetitech/scidoc-web:local
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        SCIDOC_INTERNAL_API_URL: http://api:8000
+    restart: unless-stopped
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      SCIDOC_INTERNAL_API_URL: http://api:8000
+    ports:
+      - "${SCIDOC_WEB_BIND:-127.0.0.1}:${SCIDOC_WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  postgres_data:
+  redis_data:
+  scidoc_data:

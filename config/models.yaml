@@ -1,0 +1,11 @@
+ocr:
+  preferred: rapidocr
+  fallbacks: [tesseract, paddleocr]
+formula_small:
+  engine: pix2tex
+  device: auto
+  model_path: ${SCIDOC_MODEL_ROOT}/formula
+formula_large:
+  enabled: false
+vlm:
+  enabled: false

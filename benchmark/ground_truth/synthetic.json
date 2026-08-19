@@ -1,0 +1,8 @@
+{
+  "dataset": "synthetic",
+  "description": "Automated tests generate a one-page PDF at runtime.",
+  "elements": [
+    {"page": 1, "type": "paragraph", "text": "Scientific document intelligence"},
+    {"page": 1, "type": "equation", "text": "E = mc^2"}
+  ]
+}
