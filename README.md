@@ -917,7 +917,7 @@ sequenceDiagram
     Q->>P: Deliver processing task
     P->>S: Render page at 300 DPI
     P->>P: Detect 11 regions and reading order
-    P->>P: OCR text; retry selected regions at higher DPI
+    P->>P: OCR text and retry selected regions at higher DPI
     P->>S: Write region images and page JSON
     P->>S: Write document.sdr.json
     P->>S: Write semantic HTML and selectable PDF
